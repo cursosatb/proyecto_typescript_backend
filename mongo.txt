@@ -1,0 +1,479 @@
+// CTRL + L --> limpia la pantalla
+// CTRL + D --> sale de la consola de mongo
+// CTRL + C --> sale de la consola de mongo
+
+// db --> saber en qué base de datos me encuentro
+// show dbs -> consultar las bases de datos disponibles
+// use banco --> cambiar a la base de datos del banco
+// show collections -> consultar las colecciones de la base de datos actual
+
+// borra la base de datos actual
+db.dropDatabase()
+
+// insertar un documento en la colección gestores
+db.gestores.insertOne({id: 2, usuario: "gestor1"})
+
+// obtener el número de documentos de una colección
+db.gestores.count()
+
+// borrar todos los documentos
+db.gestores.drop();
+
+// obtener todos los documentos
+db.gestores.find()
+
+// obtiene el primer documento que encuentra
+db.gestores.findOne()
+
+/*
+  Crear documentos (Create)
+*/
+
+// inserta un documento
+db.gestores.insertOne({
+  id: 2,
+  usuario: "gestor2", 
+  password: "gestor2",
+  correo: "gestor2@mail.com"
+})
+
+// inserta varios documentos
+db.gestores.insertMany([
+  {
+    id: 3,
+    usuario: "gestor3", 
+    password: "gestor3",
+    correo: "gestor3@mail.com"
+  },
+  {
+    id: 4,
+    usuario: "gestor4", 
+    password: "gestor4",
+    correo: "gestor4@mail.com"
+  }
+])
+
+/*
+  Obtener documentos (Read)
+*/
+
+db.inventory.insertMany([
+  { item: "journal", "price": 12, qty: 25, size: { h: 14, w: 21, uom: "cm" }, status: "A", tty: ["a", "b", "c"], pid: [11, 12, 13]},
+  { item: "notebook", "price": 3, qty: 50, size: { h: 8.5, w: 11, uom: "in" }, status: "A", tty: ["d", "e", "f"], pid: [21, 22, 23]},
+  { item: "paper", "price": 5, qty: 100, size: { h: 8.5, w: 11, uom: "in" }, status: "D", tty: ["g", "h", "i"], pid: [31, 32, 33, 34]},
+  { item: "planner", "price": 10, qty: 75, size: { h: 22.85, w: 30, uom: "cm" }, status: "D", tty: ["j", "k", "l"], pid: [41, 42, 43]},
+  { item: "postcard", "price": 1, qty: 45, size: { h: 10, w: 15.25, uom: "cm" }, status: "A", tty: ["a", "b", "c"], pid: [31, 32, 33]},
+  { item: "postcard", "price": 1, qty: 45, size: { h: 10, w: 15.25, uom: "cm" }, tty: ["a", "b", "c"], pid: [31, 32, 33]},
+  { item: 22, "price": 1, qty: 45, size: { h: 10, w: 15.25, uom: "cm" }, tty: ["a", "b", "c"], pid: [31, 32, 33]},
+  { item: 2, "price": 1, qty: 45, size: { h: 10, w: 15.25, uom: "cm" }, tty: ["a", "b", "c"], pid: [31, 32, 33]},
+  { status: null }
+]);
+
+// búsqueda con filtro de igualdad
+db.inventory.find({
+  status: "A"
+}).pretty()
+
+db.inventory.findOne({
+  status: {
+    $eq: "A"
+  }
+})
+
+// búsqueda con filtro de NO igualdad
+db.inventory.findOne({
+  status: {
+    $ne: "A"
+  }
+})
+
+// mayor que ($gt)
+db.inventory.find({
+  qty: {
+    $gt: 45
+  }
+})
+
+// mayor o igual que ($gte)
+
+// menor que ($lt)
+db.inventory.find({
+  qty: {
+    $lt: 45
+  }
+})
+
+// consulta con dos filtros
+db.inventory.find({
+  qty: {
+    $gt: 45,
+    $lte: 60
+  },
+  "size.h": {
+    $gt: 8,
+    $lt: 10
+  }
+})
+
+// operador lógico OR
+db.inventory.find({
+  $or: [{
+    qty: {
+      $gt: 45,
+      $lte: 60
+    }
+  },
+  {
+    "size.h": {
+      $gt: 8,
+      $lt: 10
+    }
+  }]
+})
+
+// operador lógico AND
+db.inventory.find({
+  $and: [{
+    qty: {
+      $gt: 45,
+      $lte: 60
+    }
+  },
+  {
+    "size.h": {
+      $gt: 8,
+      $lt: 10
+    }
+  }]
+})
+
+/*
+3.4 Lab: Finding Documents
+Exercise: student_id < 65
+In the sample database, how many documents in the grades collection have a student_id less than 65?
+*/
+
+db.grades.find({
+  student_id: {
+    $lt: 65
+  }
+}).count()
+
+/*
+Exercise: Inspection Result “Fail” & “Pass”
+In the sample database, how many documents in the inspections collection have result “Pass” or “Fail”?
+*/
+
+db.inspections.find({
+  $or: [{
+    result: "Pass"
+  }, 
+  {
+    result: "Fail"
+  }]
+}).count()
+
+/*
+Exercise: View Count > 1000
+In the stories collection, write a query to find all stories where the view count is greater than 1000.
++*/
+
+db.stories.find({
+  "shorturl.view_count": {
+    $gt: 1000
+  }
+}).count()
+
+// Operadores de consulta en arrays
+db.inventory.insertMany([
+  { item: "journal", qty: 25, tags: ["blank", "red"], dim_cm: [ 14, 21 ], x: [{a: 2, b: 3}, {a: 4, b: 5}] },
+  { item: "notebook", qty: 50, tags: ["red", "blank"], dim_cm: [ 14, 21 ], x: [{a: 6, b: 7}, {a: 8, b: 9}] },
+  { item: "paper", qty: 100, tags: ["red", "blank", "plain"], dim_cm: [ 14, 21 ], x: [{a: 10, b: 11}, {a: 12, b: 13}] },
+  { item: "planner", qty: 75, tags: ["blank", "red"], dim_cm: [ 22.85, 30 ], x: [{a: 14, b: 15}, {a: 16, b: 17}] },
+  { item: "postcard", qty: 45, tags: ["blue"], dim_cm: [ 10, 15.25 ], x: [{a: 18, b: 19}, {a: 20, b: 21}] }
+]);
+
+// coincidencia exacta
+db.inventory.find({
+  tags: ["red", "blank"]
+})
+
+// coincidencia de al menos un elemento
+db.inventory.find({
+  tags: {
+    $in: ["red", "blank"]
+  }
+})
+
+// coincidencia de todos (sin importar el orden)
+db.inventory.find({
+  tags: {
+    $all: ["red", "blank"]
+  }
+})
+
+// coincidencia con todas las condiciones en un array de objetos
+db.inventory.find({
+  x: {
+    $elemMatch: {
+      a: 2,
+      b: 3
+    }
+  }
+})
+
+// búsqueda por posición
+db.inventory.find({
+  "dim_cm.0": {
+    $eq: 14
+  }
+})
+
+db.inventory.insertMany([
+  { item: "journal", qty: 25, size: { h: 14, w: 21, uom: "cm" }, status: "A" },
+  { item: "notebook", qty: 50, size: { h: 8.5, w: 11, uom: "in" }, status: "A" },
+  { item: "paper", qty: 100, size: { h: 8.5, w: 11, uom: "in" }, status: "D" },
+  { item: "planner", qty: 75, size: { h: 22.85, w: 30, uom: "cm" }, status: "D" },
+  { item: "postcard", qty: 45, size: { h: 10, w: 15.25, uom: "cm" }, status: "A" }
+]);
+
+
+// Operadores de consulta en objetos (con coincidencia exacta)
+db.inventory.find({
+  size: {
+    w: 21,
+    h: 14,
+    uom: "cm"
+  }
+})
+
+db.inventory.find({
+  "size.h": 21
+})
+
+// Proyección (solamente devuelve documentos con las propiedades item y status)
+db.inventory.find({  // consulta
+  status: "A"
+},
+{ // proyección
+  item: 1,
+  status: 1,
+
+  _id: 0
+})
+
+// Proyección (solamente devuelve documentos con todas las propiedades excepto item y status)
+db.inventory.find({  // consulta
+  status: "A"
+},
+{ // proyección
+  item: 0,
+  status: 0,
+
+  _id: 0
+})
+
+// sort
+db.inventory.find().sort({
+  qty: 1 // ordenación ascendente
+})
+
+db.inventory.find().sort({
+  qty: -1 // ordenación descendente
+})
+
+// skip (saltar)
+db.inventory.find().sort({
+  qty: -1 // ordenación descendente
+}).skip(2) // salta los dos primeros documentos
+
+// limit (limita el número de documentos que retorna)
+db.inventory.find().sort({
+  qty: -1
+}).skip(2).limit(1) // salta dos documentos y retorna 1
+
+// primero sort, luego skip y por último, limit
+
+/*
+Exercise: Most comments
+Find the news article (media="news") that has the most comments in the stories collection
+*/
+db.stories.find({
+  media: {
+    $eq: "news"
+  }
+}, {
+  comments: 1,
+  id: 1,
+  title: 1,
+  _id: 0
+}).sort({
+  comments: -1
+}).limit(1).pretty()
+
+/*
+Exercise: Television or Videos
+Find all digg stories where the topic name is “Television” or the media type is “videos”. Skip the first 5 results and
+limit the result set to 10. Proyección title
+*/
+db.stories.find({
+  $or: [{
+    "topic.name": "Television"
+  }, {
+    media: "videos"
+  }]
+}, {
+  title: 1,
+  _id: 0
+}).skip(5).limit(10).pretty()
+
+
+// https://gist.github.com/ross-u/98550bf123f44638f94a3c5eedf88c35
+
+/*
+  Actualizar documentos (Update) --> updateOne, updateMany
+*/
+
+db.inventory.insertMany( [
+  { item: "canvas", qty: 100, size: { h: 28, w: 35.5, uom: "cm" }, status: "A", scores: [] },
+  { item: "journal", qty: 25, size: { h: 14, w: 21, uom: "cm" }, status: "A", scores: [] },
+  { item: "mat", qty: 85, size: { h: 27.9, w: 35.5, uom: "cm" }, status: "A", scores: [] },
+  { item: "mousepad", qty: 25, size: { h: 19, w: 22.85, uom: "cm" }, status: "P", scores: [] },
+  { item: "notebook", qty: 50, size: { h: 8.5, w: 11, uom: "in" }, status: "P", scores: [] },
+  { item: "paper", qty: 100, size: { h: 8.5, w: 11, uom: "in" }, status: "D", scores: [] },
+  { item: "planner", qty: 75, size: { h: 22.85, w: 30, uom: "cm" }, status: "D", scores: [] },
+  { item: "postcard", qty: 45, size: { h: 10, w: 15.25, uom: "cm" }, status: "A", scores: [] },
+  { item: "sketchbook", qty: 80, size: { h: 14, w: 21, uom: "cm" }, status: "A", scores: [] },
+  { item: "sketch pad", qty: 95, size: { h: 22.85, w: 30.5, uom: "cm" }, status: "A", scores: [] }
+] );
+
+// cambiar el valor de una propiedad (operador $set)
+// el primer parámetro es el filtro
+// el segundo parámetro es la actualización
+db.inventory.updateOne(
+  {
+    qty: 25
+  },
+  {
+    $set: {
+      qty: 0,
+      saludo: "hola"
+    }
+  }
+)
+
+// actualización completa (con el método update)
+db.inventory.update(
+  {
+    qty: 0
+  }, 
+  {
+    a: 1
+  })
+
+// operador $unset -> eliminar una propiedad
+// operador $rename -> cambiar el nombre de una propiedad
+
+// operador $inc -> incrementa una propiedad en uno
+db.inventory.updateOne({
+  qty: 75  
+}, {
+  $inc: {
+    qty: 1
+  }
+})
+
+/*
+3.6 Lab: Updating Documents
+Exercise: Pass Inspections
+In the sample.inspections collection, let’s imagine that we want to do a little data cleaning. We’ve decided to eliminate the “Completed” inspection result and use only “No Violation Issued” for such inspection cases.
+Please update all inspections accordingly.
+*/
+db.inspections.updateMany({
+  result: "Completed"
+}, {
+  $set: {
+    result: "No Violation Issued"
+  }
+})
+
+db.inspections.find({result:"Completed"}).count()
+
+/*
+Exercise: Increase fine in ROSEDALE
+• Update all inspections done in the city of “ROSEDALE”.
+• For failed inspections, raise the “fine” value by 150.
+*/
+db.inspections.updateMany({
+  "address.city": "ROSEDALE"
+}, {
+  $inc: {
+    fine: 150
+  }
+})
+
+
+/*
+  Eliminar documentos (Remove)
+*/
+db.inventory.insertMany( [
+  { item: "journal", qty: 25, size: { h: 14, w: 21, uom: "cm" }, status: "A" },
+  { item: "notebook", qty: 50, size: { h: 8.5, w: 11, uom: "in" }, status: "P" },
+  { item: "paper", qty: 100, size: { h: 8.5, w: 11, uom: "in" }, status: "D" },
+  { item: "planner", qty: 75, size: { h: 22.85, w: 30, uom: "cm" }, status: "D" },
+  { item: "postcard", qty: 45, size: { h: 10, w: 15.25, uom: "cm" }, status: "A" },
+] );
+
+// elimina un documento que cumpla el filtro establecido
+db.inventory.deleteOne( { status: "D" } );
+
+// elimina todos los documentos que cumplan con el filtro establecido
+db.inventory.deleteMany( { status: "A" } )
+
+
+/*
+Índices
+*/
+
+for (let i=0; i<500000; i++) {
+  db.inventory1.insertMany([
+    { item: "journal", "price": 12, qty: 25, size: { h: 14, w: 21, uom: "cm" }, status: "A", tty: ["a", "b", "c"], pid: [11, 12, 13]},
+    { item: "notebook", "price": 3, qty: 50, size: { h: 8.5, w: 11, uom: "in" }, status: "A", tty: ["d", "e", "f"], pid: [21, 22, 23]},
+    { item: "paper", "price": 5, qty: 100, size: { h: 8.5, w: 11, uom: "in" }, status: "D", tty: ["g", "h", "i"], pid: [31, 32, 33, 34]},
+    { item: "planner", "price": 10, qty: 75, size: { h: 22.85, w: 30, uom: "cm" }, status: "D", tty: ["j", "k", "l"], pid: [41, 42, 43]},
+    { item: "postcard", "price": 1, qty: 45, size: { h: 10, w: 15.25, uom: "cm" }, status: "A", tty: ["a", "b", "c"], pid: [31, 32, 33]},
+  ]);
+}
+
+// inserta un documento con price=112
+db.inventory1.insertOne({ item: "journal", "price": 112, qty: 25, size: { h: 14, w: 21, uom: "cm" }, status: "A", tty: ["a", "b", "c"], pid: [11, 12, 13]});
+
+// creación de índice de campo único
+db.inventory1.createIndex({ price: 1 })
+
+
+// ÍNDICES DE CAMPO MÚLTIPLE
+for (let i=0; i<500000; i++) {
+  db.inventory2.insertMany([
+    { item: "journal", "price": 112, qty: 25, size: { h: 14, w: 21, uom: "cm" }, status: "A", tty: ["a", "b", "c"], pid: [11, 12, 13], cad: "Lorem Ipsum is simply"},
+    { item: "notebook", "price": 112, qty: 50, size: { h: 8.5, w: 11, uom: "in" }, status: "A", tty: ["d", "e", "f"], pid: [21, 22, 23], cad: "dummy text of the printing and typesetting "},
+    { item: "paper", "price": 112, qty: 100, size: { h: 8.5, w: 11, uom: "in" }, status: "D", tty: ["g", "h", "i"], pid: [31, 32, 33, 34], cad: "the industry's standard dummy text ever since the 1500s"},
+    { item: "planner", "price": 112, qty: 75, size: { h: 22.85, w: 30, uom: "cm" }, status: "D", tty: ["j", "k", "l"], pid: [41, 42, 43], cad: "when an unknown printer took a galley of type and scrambled"},
+    { item: "postcard", "price": 112, qty: 45, size: { h: 10, w: 15.25, uom: "cm" }, status: "A", tty: ["a", "b", "c"], pid: [31, 32, 33], cad: "it to make a type specimen book"},
+  ]);
+}
+
+// inserta un documento con item=post y price=113
+db.inventory2.insertOne({ item: "post", "price": 113, qty: 25, size: { h: 14, w: 21, uom: "cm" }, status: "A", tty: ["a", "b", "c"], pid: [11, 12, 13]});
+
+// creación del índice sobre el campo price
+db.inventory2.createIndex({price: 1})
+
+// consulta rápida porque utiliza el índice anterior
+db.inventory2.find( { "price": 113} )
+
+// inserta un documento con price=112 y item=post
+db.inventory2.insertOne({ item: "post", "price": 112, qty: 25, size: { h: 14, w: 21, uom: "cm" }, status: "A", tty: ["a", "b", "c"], pid: [11, 12, 13]});
+
+// crea el índice de campo múltiple
+db.inventory2.createIndex( { "price": 1, "item": 1} )
